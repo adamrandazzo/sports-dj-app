@@ -1,0 +1,13 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<Workspace
+   version = "1.0">
+   <FileRef
+      location = "group:Apps/HockeyDJ/Hockey DJ.xcodeproj">
+   </FileRef>
+   <FileRef
+      location = "group:Apps/DugoutDJ/Dugout DJ.xcodeproj">
+   </FileRef>
+   <FileRef
+      location = "group:Packages/SharedDJCore">
+   </FileRef>
+</Workspace>

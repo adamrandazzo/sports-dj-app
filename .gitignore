@@ -1,0 +1,36 @@
+# Xcode
+*.xcuserstate
+*.xcuserdatad/
+xcuserdata/
+DerivedData/
+*.hmap
+*.ipa
+*.dSYM.zip
+*.dSYM
+build/
+
+# Swift Package Manager
+.build/
+.swiftpm/
+Packages/SharedDJCore/.build/
+
+# CocoaPods
+Pods/
+
+# Fastlane
+fastlane/report.xml
+fastlane/Preview.html
+fastlane/screenshots/**/screenshots.html
+fastlane/test_output
+
+# OS
+.DS_Store
+*.swp
+*~
+
+# IDE
+.idea/
+*.code-workspace
+
+# Claude
+.claude/
