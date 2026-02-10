@@ -1,0 +1,16 @@
+# Fastlane screenshots
+fastlane/screenshots/
+
+# Fastlane reports
+fastlane/report.xml
+fastlane/Preview.html
+fastlane/test_output/
+
+# Xcode
+*.xcuserstate
+xcuserdata/
+DerivedData/
+*.xcscmblueprint
+
+# macOS
+.DS_Store
