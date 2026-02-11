@@ -91,7 +91,10 @@ public final class PlayerIntroCoordinator {
             currentPhase = .numberAnnouncement
             session.isAnnouncementPlaying = true
             await announcer.announce(playerNumber: player.number, announcer: team.announcer)
-            guard myGeneration == introGeneration else { return }
+            guard myGeneration == introGeneration else {
+                session.isAnnouncementPlaying = false
+                return
+            }
         }
 
         // Phase 2: AI Name announcement (if enabled and generated)
@@ -102,11 +105,17 @@ public final class PlayerIntroCoordinator {
                 session.isAnnouncementPlaying = true
                 await announcer.playLocalFile(at: nameFileURL)
 
-                guard myGeneration == introGeneration else { return }
+                guard myGeneration == introGeneration else {
+                    session.isAnnouncementPlaying = false
+                    return
+                }
 
                 // Brief pause before song
                 try? await Task.sleep(nanoseconds: 150_000_000) // 0.15 seconds
-                guard myGeneration == introGeneration else { return }
+                guard myGeneration == introGeneration else {
+                    session.isAnnouncementPlaying = false
+                    return
+                }
             }
         }
 

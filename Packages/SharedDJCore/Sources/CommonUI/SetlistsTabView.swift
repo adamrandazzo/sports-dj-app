@@ -98,7 +98,7 @@ public struct SetlistsTabView: View {
                 SetlistDetailView(setlist: setlist)
             }
             .navigationDestination(isPresented: $showingProTab) {
-                ProTabView(termsURL: URL(string: "https://example.com/terms")!, privacyURL: URL(string: "https://example.com/privacy")!)
+                ProTabView(termsURL: DJCoreConfiguration.shared.sportConfig?.termsURL ?? URL(string: "https://ultimatesportsdj.app/privacy")!, privacyURL: DJCoreConfiguration.shared.sportConfig?.privacyURL ?? URL(string: "https://ultimatesportsdj.app/privacy")!)
             }
             .alert("Setlist Downloaded", isPresented: $showingImportSuccessAlert) {
                 Button("View Setlist") {

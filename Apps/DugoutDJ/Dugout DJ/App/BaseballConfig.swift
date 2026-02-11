@@ -1,3 +1,4 @@
+import Foundation
 import Core
 
 struct BaseballConfig: SportConfig {
@@ -22,4 +23,6 @@ struct BaseballConfig: SportConfig {
     static let supportsLifetimePurchase = false  // 1-year subscription only (no lifetime — AI credits too expensive)
     static let announcementPrefix = "Now batting"
     static let playerOrderLabel = "Batting Order"
+    static let termsURL = URL(string: "https://ultimatesportsdj.app/privacy")!
+    static let privacyURL = URL(string: "https://ultimatesportsdj.app/privacy")!
 }

@@ -12,7 +12,7 @@ let package = Package(
         .library(name: "CommonUI", targets: ["CommonUI"]),
     ],
     dependencies: [
-        .package(url: "https://github.com/firebase/firebase-ios-sdk.git", from: "12.8.0"),
+        .package(url: "https://github.com/firebase/firebase-ios-sdk.git", from: "12.9.0"),
     ],
     targets: [
         .target(name: "Core"),

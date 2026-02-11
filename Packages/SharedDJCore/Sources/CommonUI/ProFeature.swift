@@ -48,7 +48,7 @@ public enum ProFeature: String, CaseIterable, Identifiable {
     public var description: String {
         switch self {
         case .unlimitedSongs:
-            return "Import as many songs as you want. Free users are limited to \(ProStatusManager.shared.freeSongLimit) songs."
+            return "Import as many songs as you want. Free users are limited to \(Self.freeLimits.maxSongs) songs."
         case .customEvents:
             return "Create your own custom events beyond the standard set."
         case .playbackModes:

@@ -3,6 +3,7 @@ import Observation
 import Core
 
 /// Manages Pro subscription status across the app
+@MainActor
 @Observable
 public final class ProStatusManager {
     public static let shared = ProStatusManager()

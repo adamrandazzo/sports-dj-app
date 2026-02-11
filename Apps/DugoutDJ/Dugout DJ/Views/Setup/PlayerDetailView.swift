@@ -11,7 +11,7 @@ struct PlayerDetailView: View {
     @Bindable var player: Player
     @Environment(\.modelContext) var modelContext
     @Environment(AnnouncerService.self) var announcer
-    @Environment(PlayerIntroCoordinator.self) var walkUpCoordinator
+    @Environment(PlayerIntroCoordinator.self) var coordinator
     @Query(sort: \Team.sortOrder) private var teams: [Team]
 
     @State private var showingSongPicker = false
@@ -347,9 +347,9 @@ struct PlayerDetailView: View {
 
                     Spacer()
 
-                    if walkUpCoordinator.isPlaying && walkUpCoordinator.currentPlayer?.id == player.id {
+                    if coordinator.isPlaying && coordinator.currentPlayer?.id == player.id {
                         Button {
-                            walkUpCoordinator.stop()
+                            coordinator.stop()
                             isPreviewingFullWalkUp = false
                         } label: {
                             ZStack {
@@ -367,7 +367,7 @@ struct PlayerDetailView: View {
                 }
                 .padding(.vertical, 8)
             }
-            .disabled(isPreviewingFullWalkUp && walkUpCoordinator.currentPlayer?.id != player.id)
+            .disabled(isPreviewingFullWalkUp && coordinator.currentPlayer?.id != player.id)
         } footer: {
             Text("Plays all enabled steps in sequence: batting announcement, name announcement, and walk-up song")
         }
@@ -423,10 +423,10 @@ struct PlayerDetailView: View {
         isPreviewingFullWalkUp = true
 
         Task {
-            await walkUpCoordinator.previewIntro(for: player)
+            await coordinator.previewIntro(for: player)
 
             // Wait for playback to finish
-            while walkUpCoordinator.isPlaying {
+            while coordinator.isPlaying {
                 try? await Task.sleep(nanoseconds: 100_000_000)
             }
 
@@ -608,7 +608,7 @@ struct PhoneticNameHelpView: View {
     let announcerService = AnnouncerService()
     let audioPlayer = AudioPlayerService.shared
     let gameSession = GameSession()
-    let walkUpCoordinator = PlayerIntroCoordinator(
+    let coordinator = PlayerIntroCoordinator(
         announcer: announcerService,
         audioPlayer: audioPlayer,
         session: gameSession
@@ -619,5 +619,5 @@ struct PhoneticNameHelpView: View {
     }
     .modelContainer(container)
     .environment(announcerService)
-    .environment(walkUpCoordinator)
+    .environment(coordinator)
 }

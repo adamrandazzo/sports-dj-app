@@ -311,16 +311,18 @@ public final class AudioPlayerService {
             Task {
                 do {
                     // Step 1: Fetch the song metadata
+                    // Catalog IDs are purely numeric; anything else is a library ID
+                    let isCatalogID = sourceID.allSatisfy { $0.isWholeNumber }
                     let song: Song?
-                    if sourceID.hasPrefix("i.") {
-                        // Library song ID - fetch from user's library
-                        var request = MusicLibraryRequest<Song>()
-                        request.filter(matching: \.id, equalTo: MusicItemID(sourceID))
+                    if isCatalogID {
+                        // Catalog song ID - fetch from Apple Music catalog
+                        let request = MusicCatalogResourceRequest<Song>(matching: \.id, equalTo: MusicItemID(sourceID))
                         let response = try await request.response()
                         song = response.items.first
                     } else {
-                        // Catalog song ID - fetch from Apple Music catalog
-                        let request = MusicCatalogResourceRequest<Song>(matching: \.id, equalTo: MusicItemID(sourceID))
+                        // Library song ID (i.xxx, l.xxx, etc.) - fetch from user's library
+                        var request = MusicLibraryRequest<Song>()
+                        request.filter(matching: \.id, equalTo: MusicItemID(sourceID))
                         let response = try await request.response()
                         song = response.items.first
                     }

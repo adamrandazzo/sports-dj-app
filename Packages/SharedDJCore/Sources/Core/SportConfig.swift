@@ -13,6 +13,8 @@ public protocol SportConfig {
     static var supportsLifetimePurchase: Bool { get }
     static var announcementPrefix: String { get }
     static var playerOrderLabel: String { get }
+    static var termsURL: URL { get }
+    static var privacyURL: URL { get }
 }
 
 // TODO: IAP Differentiation

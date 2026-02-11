@@ -80,6 +80,8 @@ struct Hockey_DJApp: App {
                         if !Self.isUITesting {
                             migrateFilesToICloud()
                         }
+
+                        AnalyticsService.appOpened()
                     }
                     .onReceive(NotificationCenter.default.publisher(for: .NSPersistentStoreRemoteChange)) { _ in
                         Event.deduplicateStandardEvents(in: container.mainContext)

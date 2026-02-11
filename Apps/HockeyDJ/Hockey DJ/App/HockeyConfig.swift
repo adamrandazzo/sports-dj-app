@@ -1,3 +1,4 @@
+import Foundation
 import Core
 
 struct HockeyConfig: SportConfig {
@@ -24,4 +25,6 @@ struct HockeyConfig: SportConfig {
     static let supportsLifetimePurchase = true  // 6-month subscription + lifetime
     static let announcementPrefix = "Now on the ice"
     static let playerOrderLabel = "Starting Lineup"
+    static let termsURL = URL(string: "https://ultimatesportsdj.app/privacy")!
+    static let privacyURL = URL(string: "https://ultimatesportsdj.app/privacy")!
 }

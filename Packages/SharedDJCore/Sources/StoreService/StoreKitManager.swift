@@ -18,6 +18,7 @@ public final class StoreKitManager {
     // MARK: - Private
 
     private var updateListenerTask: Task<Void, Error>?
+    private var processedTransactionIDs: Set<UInt64> = []
 
     // MARK: - Init
 
@@ -119,6 +120,14 @@ public final class StoreKitManager {
             errorMessage = "Failed to restore purchases: \(error.localizedDescription)"
         }
 
+        // Retry product loading if initial load failed
+        if products.isEmpty {
+            let productIDs = DJCoreConfiguration.shared.sportConfig?.productIdentifiers ?? []
+            if let loaded = try? await Product.products(for: productIDs) {
+                products = loaded.sorted { $0.price < $1.price }
+            }
+        }
+
         isLoading = false
     }
 
@@ -149,6 +158,9 @@ public final class StoreKitManager {
 
     @MainActor
     private func handlePurchase(_ transaction: Transaction) async {
+        guard !processedTransactionIDs.contains(transaction.id) else { return }
+        processedTransactionIDs.insert(transaction.id)
+
         if let expirationDate = transaction.expirationDate {
             if expirationDate > Date() {
                 ProStatusManager.shared.grantPro(
