@@ -59,6 +59,7 @@ private enum CloudStorageValueType {
     case bool, int, double, string
 }
 
+@MainActor
 private class CloudStorageObserver<Value>: ObservableObject {
     @Published var value: Value {
         didSet {

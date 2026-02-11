@@ -177,7 +177,10 @@ struct AddPlayerSheet: View {
             Form {
                 Section {
                     TextField("Name", text: $name)
-                    TextField("Number", text: $number)
+                    TextField("Number", text: Binding(
+                        get: { number },
+                        set: { number = String($0.filter { $0.isNumber }.prefix(2)) }
+                    ))
                         .keyboardType(.numberPad)
                 }
             }

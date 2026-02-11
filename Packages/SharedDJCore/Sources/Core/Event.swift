@@ -94,6 +94,60 @@ extension Event {
     }
 }
 
+// MARK: - Deduplication
+extension Event {
+    /// Merges duplicate standard events that share the same `code`.
+    /// Keeps the event whose pool has the most songs (ties broken by earliest sortOrder),
+    /// moves songs from duplicates into the keeper's pool, then deletes the duplicates.
+    @MainActor
+    public static func deduplicateStandardEvents(in context: ModelContext) {
+        let descriptor = FetchDescriptor<Event>(
+            predicate: #Predicate { $0.isStandard == true }
+        )
+
+        guard let standardEvents = try? context.fetch(descriptor),
+              standardEvents.count > 1 else { return }
+
+        // Group by code, skipping events with no code
+        var groupedByCode: [String: [Event]] = [:]
+        for event in standardEvents {
+            guard !event.code.isEmpty else { continue }
+            groupedByCode[event.code, default: []].append(event)
+        }
+
+        var didDelete = false
+
+        for (_, events) in groupedByCode {
+            guard events.count > 1 else { continue }
+
+            // Pick keeper: most songs in pool, then earliest sortOrder
+            let sorted = events.sorted { a, b in
+                let aSongs = a.pool?.songsArray.count ?? 0
+                let bSongs = b.pool?.songsArray.count ?? 0
+                if aSongs != bSongs { return aSongs > bSongs }
+                return a.sortOrder < b.sortOrder
+            }
+
+            let keeper = sorted[0]
+            let duplicates = sorted.dropFirst()
+
+            for duplicate in duplicates {
+                // Move songs from duplicate's pool into keeper's pool
+                for song in duplicate.pool?.songsArray ?? [] {
+                    keeper.pool?.addSong(song)
+                }
+                context.delete(duplicate)
+                didDelete = true
+            }
+        }
+
+        if didDelete {
+            try? context.save()
+            print("Deduplicated standard events")
+        }
+    }
+}
+
 // MARK: - Color Extension
 extension Color {
     public init?(hex: String) {

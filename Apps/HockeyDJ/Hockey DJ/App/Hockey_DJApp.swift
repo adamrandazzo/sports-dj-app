@@ -1,5 +1,6 @@
 import SwiftUI
 import SwiftData
+import CoreData
 import FirebaseCore
 import FirebaseAnalytics
 import FirebaseCrashlytics
@@ -74,10 +75,14 @@ struct Hockey_DJApp: App {
 
                         seedStandardEventsIfNeeded()
                         migrateEventCodes()
+                        Event.deduplicateStandardEvents(in: container.mainContext)
 
                         if !Self.isUITesting {
                             migrateFilesToICloud()
                         }
+                    }
+                    .onReceive(NotificationCenter.default.publisher(for: .NSPersistentStoreRemoteChange)) { _ in
+                        Event.deduplicateStandardEvents(in: container.mainContext)
                     }
                     .task {
                         await ProStatusManager.shared.refreshStatus()

@@ -1,5 +1,6 @@
 import SwiftUI
 import SwiftData
+import CoreData
 import FirebaseCore
 import FirebaseAnalytics
 import FirebaseCrashlytics
@@ -111,12 +112,16 @@ struct Dugout_DJApp: App {
 
                         seedStandardEventsIfNeeded()
                         migrateEventCodes()
+                        Event.deduplicateStandardEvents(in: container.mainContext)
 
                         if !Self.isUITesting {
                             migrateFilesToICloud()
                         }
 
                         AnalyticsService.appOpened()
+                    }
+                    .onReceive(NotificationCenter.default.publisher(for: .NSPersistentStoreRemoteChange)) { _ in
+                        Event.deduplicateStandardEvents(in: container.mainContext)
                     }
                     .task {
                         await ProStatusManager.shared.refreshStatus()

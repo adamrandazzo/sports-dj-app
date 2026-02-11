@@ -35,7 +35,7 @@ public final class RemotePlaylistService {
 
     /// Fetch list of available remote playlists
     public func fetchPlaylists() async throws -> [RemotePlaylistSummary] {
-        guard NetworkMonitor.shared.isConnected else {
+        guard await NetworkMonitor.shared.isConnected else {
             throw RemotePlaylistError.noNetwork
         }
 
@@ -54,7 +54,7 @@ public final class RemotePlaylistService {
 
     /// Fetch detailed playlist with all songs
     public func fetchPlaylistDetail(id: Int) async throws -> RemotePlaylistDetail {
-        guard NetworkMonitor.shared.isConnected else {
+        guard await NetworkMonitor.shared.isConnected else {
             throw RemotePlaylistError.noNetwork
         }
 

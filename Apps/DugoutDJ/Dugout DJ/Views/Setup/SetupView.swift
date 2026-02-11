@@ -182,12 +182,6 @@ struct SetupView: View {
 
                 // Settings
                 Section("Settings") {
-                    NavigationLink {
-                        AnnouncerSettingsView()
-                    } label: {
-                        Label("Announcer Voice", systemImage: "mic.fill")
-                    }
-
                     NavigationLink(value: ContentView.SetupDestination.settings) {
                         Label("App Settings", systemImage: "gear")
                     }

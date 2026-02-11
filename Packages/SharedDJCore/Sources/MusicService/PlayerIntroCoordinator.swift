@@ -23,6 +23,10 @@ public final class PlayerIntroCoordinator {
     /// Track player count for auto-advancing after playback
     private var currentPlayerCount: Int = 0
 
+    /// Generation counter for atomic stop — incremented on stop() and new playIntro(),
+    /// so any in-flight async sequence detects it's been superseded and bails out.
+    private var introGeneration: Int = 0
+
     // MARK: - Analytics Callback
 
     /// Optional callback for reporting intro played events (replaces direct AnalyticsService dependency)
@@ -58,6 +62,10 @@ public final class PlayerIntroCoordinator {
         // Stop any current playback without advancing (we're starting a new intro)
         stop(advance: false)
 
+        // Claim a new generation — any previously running sequence will see a mismatch and bail out
+        introGeneration += 1
+        let myGeneration = introGeneration
+
         isPlaying = true
         currentPlayer = player
         session.currentPlayer = player
@@ -83,9 +91,7 @@ public final class PlayerIntroCoordinator {
             currentPhase = .numberAnnouncement
             session.isAnnouncementPlaying = true
             await announcer.announce(playerNumber: player.number, announcer: team.announcer)
-
-            // Small pause between announcements
-            try? await Task.sleep(nanoseconds: 200_000_000) // 0.2 seconds
+            guard myGeneration == introGeneration else { return }
         }
 
         // Phase 2: AI Name announcement (if enabled and generated)
@@ -96,8 +102,11 @@ public final class PlayerIntroCoordinator {
                 session.isAnnouncementPlaying = true
                 await announcer.playLocalFile(at: nameFileURL)
 
-                // Small pause after name
-                try? await Task.sleep(nanoseconds: 300_000_000) // 0.3 seconds
+                guard myGeneration == introGeneration else { return }
+
+                // Brief pause before song
+                try? await Task.sleep(nanoseconds: 150_000_000) // 0.15 seconds
+                guard myGeneration == introGeneration else { return }
             }
         }
 
@@ -118,6 +127,9 @@ public final class PlayerIntroCoordinator {
         // Stop any current playback without advancing (this is a preview)
         stop(advance: false)
 
+        introGeneration += 1
+        let myGeneration = introGeneration
+
         isPlaying = true
         currentPlayer = player
 
@@ -129,7 +141,7 @@ public final class PlayerIntroCoordinator {
         if player.playNumberAnnouncement, let team = player.team {
             currentPhase = .numberAnnouncement
             await announcer.announce(playerNumber: player.number, announcer: team.announcer)
-            try? await Task.sleep(nanoseconds: 200_000_000)
+            guard myGeneration == introGeneration else { return }
         }
 
         // Phase 2: AI Name announcement
@@ -138,7 +150,9 @@ public final class PlayerIntroCoordinator {
             if FileManager.default.fileExists(atPath: nameFileURL.path) {
                 currentPhase = .nameAnnouncement
                 await announcer.playLocalFile(at: nameFileURL)
-                try? await Task.sleep(nanoseconds: 300_000_000)
+                guard myGeneration == introGeneration else { return }
+                try? await Task.sleep(nanoseconds: 150_000_000)
+                guard myGeneration == introGeneration else { return }
             }
         }
 
@@ -191,10 +205,19 @@ public final class PlayerIntroCoordinator {
         audioPlayer.play(song)
     }
 
-    /// Stop any current playback and optionally advance to next player
+    /// Stop any current playback and optionally advance to next player.
+    /// Increments the generation counter so any in-flight async sequence bails out immediately.
     public func stop(advance: Bool = true) {
+        introGeneration += 1
         announcer.stop()
-        audioPlayer.stop()
+
+        // Fade out music if a song is playing, otherwise stop immediately
+        if currentPhase == .playingSong {
+            audioPlayer.fadeOutAndStop()
+        } else {
+            audioPlayer.stop()
+        }
+
         isPlaying = false
         currentPhase = .idle
         currentPlayer = nil

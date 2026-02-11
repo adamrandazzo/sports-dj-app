@@ -3,6 +3,7 @@ import Network
 import Observation
 import Core
 
+@MainActor
 @Observable
 public final class NetworkMonitor {
     public static let shared = NetworkMonitor()
@@ -13,7 +14,7 @@ public final class NetworkMonitor {
 
     private init() {
         monitor.pathUpdateHandler = { [weak self] path in
-            DispatchQueue.main.async {
+            Task { @MainActor in
                 self?.isConnected = path.status == .satisfied
             }
         }

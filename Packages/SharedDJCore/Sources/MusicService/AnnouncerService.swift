@@ -12,40 +12,19 @@ public final class AnnouncerService: NSObject {
     public private(set) var isPlaying: Bool = false
 
     /// Whether announcements are enabled
-    public var isEnabled: Bool = true {
-        didSet {
-            UserDefaults.standard.set(isEnabled, forKey: "announcer_enabled")
-        }
-    }
+    public var isEnabled: Bool = true
 
     /// Volume (0.0 - 1.0, default 1.0)
-    public var volume: Float = 1.0 {
-        didSet {
-            UserDefaults.standard.set(volume, forKey: "announcer_volume")
-            audioPlayer?.volume = volume
-        }
-    }
+    public var volume: Float = 1.0
 
     /// Continuation for async announce completion
     private var announceContinuation: CheckedContinuation<Void, Never>?
 
     public override init() {
         super.init()
-        loadSettings()
-    }
-
-    // MARK: - Settings Persistence
-
-    private func loadSettings() {
-        let defaults = UserDefaults.standard
-
-        if defaults.object(forKey: "announcer_enabled") != nil {
-            isEnabled = defaults.bool(forKey: "announcer_enabled")
-        }
-
-        if defaults.object(forKey: "announcer_volume") != nil {
-            volume = defaults.float(forKey: "announcer_volume")
-        }
+        // Clean up any previously persisted settings
+        UserDefaults.standard.removeObject(forKey: "announcer_enabled")
+        UserDefaults.standard.removeObject(forKey: "announcer_volume")
     }
 
     // MARK: - Announcement

@@ -64,7 +64,7 @@
          </BuildableReference>
       </BuildableProductRunnable>
       <StoreKitConfigurationFileReference
-         identifier = "../../Hockey DJ/Products.storekit">
+         identifier = "../Apps/HockeyDJ/Hockey DJ/Products.storekit">
       </StoreKitConfigurationFileReference>
    </LaunchAction>
    <ProfileAction

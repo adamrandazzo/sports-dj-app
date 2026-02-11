@@ -14,6 +14,7 @@ struct WalkUpView: View {
     @Query(sort: \Team.sortOrder) var teams: [Team]
     @State private var selectedTeam: Team?
     @State private var editMode: EditMode = .inactive
+    @AppStorage("selectedTeamID") private var selectedTeamID: String = ""
     @CloudStorage("hasSeenQuickStart") private var hasSeenQuickStart = false
 
     var currentTeam: Team? {
@@ -94,14 +95,20 @@ struct WalkUpView: View {
                 .animation(.easeInOut(duration: 0.2), value: coordinator.isPlaying)
                 .animation(.easeInOut(duration: 0.2), value: audioPlayer.isPlaying)
                 .onAppear {
-                    // Set initial team if not set
+                    // Restore previously selected team, or fall back to first
                     if selectedTeam == nil && !teams.isEmpty {
-                        selectedTeam = teams.first
-                        session.activeTeam = teams.first
+                        if let savedID = UUID(uuidString: selectedTeamID),
+                           let saved = teams.first(where: { $0.id == savedID }) {
+                            selectedTeam = saved
+                        } else {
+                            selectedTeam = teams.first
+                        }
+                        session.activeTeam = selectedTeam
                     }
                 }
                 .onChange(of: selectedTeam) { _, newTeam in
                     session.activeTeam = newTeam
+                    selectedTeamID = newTeam?.id.uuidString ?? ""
                     // Reset next batter index when switching teams
                     session.nextPlayerIndex = 0
                 }

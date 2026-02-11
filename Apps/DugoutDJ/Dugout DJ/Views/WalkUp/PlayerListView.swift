@@ -211,10 +211,14 @@ struct PlayerRow: View {
                     }
                 }
 
-                // Play button
+                // Play/Stop button
                 Button {
-                    Task {
-                        await coordinator.playIntro(for: player, at: index, totalPlayers: totalPlayers)
+                    if coordinator.isPlaying && isCurrentBatter {
+                        coordinator.stop()
+                    } else {
+                        Task {
+                            await coordinator.playIntro(for: player, at: index, totalPlayers: totalPlayers)
+                        }
                     }
                 } label: {
                     Image(systemName: coordinator.isPlaying && isCurrentBatter ? "stop.circle.fill" : "play.circle.fill")

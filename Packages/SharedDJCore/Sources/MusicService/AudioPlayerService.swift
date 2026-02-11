@@ -130,6 +130,9 @@ public final class AudioPlayerService {
             return
         }
 
+        let sourceID = clip.sourceID
+        let startTime = clip.startTime
+
         Task {
             // Check subscription status before attempting playback
             do {
@@ -149,18 +152,18 @@ public final class AudioPlayerService {
             do {
                 // Step 1: Fetch the song metadata
                 // Catalog IDs are purely numeric; anything else is a library ID
-                let isCatalogID = clip.sourceID.allSatisfy { $0.isWholeNumber }
+                let isCatalogID = sourceID.allSatisfy { $0.isWholeNumber }
                 let song: Song?
 
                 if isCatalogID {
                     // Catalog song ID - fetch from Apple Music catalog
-                    let request = MusicCatalogResourceRequest<Song>(matching: \.id, equalTo: MusicItemID(clip.sourceID))
+                    let request = MusicCatalogResourceRequest<Song>(matching: \.id, equalTo: MusicItemID(sourceID))
                     let response = try await request.response()
                     song = response.items.first
                 } else {
                     // Library song ID (i.xxx, l.xxx, etc.) - fetch from user's library
                     var request = MusicLibraryRequest<Song>()
-                    request.filter(matching: \.id, equalTo: MusicItemID(clip.sourceID))
+                    request.filter(matching: \.id, equalTo: MusicItemID(sourceID))
                     let response = try await request.response()
                     song = response.items.first
                 }
@@ -178,8 +181,8 @@ public final class AudioPlayerService {
                 try await musicPlayer.play()
 
                 // Seek to start time if needed
-                if clip.startTime > 0 {
-                    musicPlayer.playbackTime = clip.startTime
+                if startTime > 0 {
+                    musicPlayer.playbackTime = startTime
                 }
 
                 await MainActor.run {
@@ -189,22 +192,25 @@ public final class AudioPlayerService {
                 }
             } catch {
                 // Capture subscription details for diagnostics
-                var subscriptionInfo = "unknown"
+                let subInfo: String
                 if let sub = try? await MusicSubscription.current {
-                    subscriptionInfo = "canPlay=\(sub.canPlayCatalogContent), canBecome=\(sub.canBecomeSubscriber), cloudLibrary=\(sub.hasCloudLibraryEnabled)"
+                    subInfo = "canPlay=\(sub.canPlayCatalogContent), canBecome=\(sub.canBecomeSubscriber), cloudLibrary=\(sub.hasCloudLibraryEnabled)"
+                } else {
+                    subInfo = "unknown"
                 }
 
                 // Check network status only after failure
                 await MainActor.run {
                     let message = Self.describePlaybackError(error)
                     lastError = message
-                    Self.analyticsPlaybackError?(message, "appleMusic", clip.sourceID, error, subscriptionInfo)
+                    Self.analyticsPlaybackError?(message, "appleMusic", sourceID, error, subInfo)
                 }
             }
         }
     }
 
     /// Convert playback errors to user-friendly messages
+    @MainActor
     private static func describePlaybackError(_ error: Error) -> String {
         let nsError = error as NSError
         print("AudioPlayerService: Playback error - domain: \(nsError.domain), code: \(nsError.code), description: \(error.localizedDescription), userInfo: \(nsError.userInfo)")
@@ -300,19 +306,21 @@ public final class AudioPlayerService {
                 return
             }
 
+            let sourceID = clip.sourceID
+
             Task {
                 do {
                     // Step 1: Fetch the song metadata
                     let song: Song?
-                    if clip.sourceID.hasPrefix("i.") {
+                    if sourceID.hasPrefix("i.") {
                         // Library song ID - fetch from user's library
                         var request = MusicLibraryRequest<Song>()
-                        request.filter(matching: \.id, equalTo: MusicItemID(clip.sourceID))
+                        request.filter(matching: \.id, equalTo: MusicItemID(sourceID))
                         let response = try await request.response()
                         song = response.items.first
                     } else {
                         // Catalog song ID - fetch from Apple Music catalog
-                        let request = MusicCatalogResourceRequest<Song>(matching: \.id, equalTo: MusicItemID(clip.sourceID))
+                        let request = MusicCatalogResourceRequest<Song>(matching: \.id, equalTo: MusicItemID(sourceID))
                         let response = try await request.response()
                         song = response.items.first
                     }
@@ -340,7 +348,7 @@ public final class AudioPlayerService {
                     await MainActor.run {
                         let message = Self.describePlaybackError(error)
                         lastError = message
-                        Self.analyticsPlaybackError?(message, "appleMusic", clip.sourceID, error, nil)
+                        Self.analyticsPlaybackError?(message, "appleMusic", sourceID, error, nil)
                     }
                 }
             }
@@ -361,6 +369,8 @@ public final class AudioPlayerService {
     /// Stop playback completely
     /// - Parameter clearSession: Whether to clear the active session reference (default true)
     public func stop(clearSession: Bool = true) {
+        fadeOutTimer?.invalidate()
+        fadeOutTimer = nil
         if isPlayingAppleMusic {
             musicPlayer.stop()
         } else {
@@ -379,6 +389,30 @@ public final class AudioPlayerService {
                 activeSession?.stopPlaying()
             }
             activeSession = nil
+        }
+    }
+
+    /// Fade out over a short duration then stop
+    private var fadeOutTimer: Timer?
+    private static let fadeOutStopDuration: TimeInterval = 0.4
+
+    public func fadeOutAndStop(clearSession: Bool = true) {
+        guard isPlaying else { return }
+
+        if !isPlayingAppleMusic, let player = audioPlayer {
+            // AVAudioPlayer has built-in fade support
+            player.setVolume(0, fadeDuration: Self.fadeOutStopDuration)
+            stopPlaybackTimer()
+            isPlaying = false
+
+            // Stop fully after the fade completes
+            fadeOutTimer?.invalidate()
+            fadeOutTimer = Timer.scheduledTimer(withTimeInterval: Self.fadeOutStopDuration, repeats: false) { [weak self] _ in
+                self?.stop(clearSession: clearSession)
+            }
+        } else {
+            // Apple Music doesn't expose volume control — stop immediately
+            stop(clearSession: clearSession)
         }
     }
 
@@ -536,13 +570,13 @@ extension AudioPlayerService {
         session.clearPausedState()
     }
 
-    /// Stop and update session
+    /// Stop and update session (with fade out)
     @MainActor
     public func stopAndUpdateSession(_ session: GameSession) {
         if let clip = currentClip {
             Self.analyticsPlaybackAction?("stop", clip.sourceType.rawValue)
         }
-        stop()
+        fadeOutAndStop()
         session.stopPlaying()
     }
 }

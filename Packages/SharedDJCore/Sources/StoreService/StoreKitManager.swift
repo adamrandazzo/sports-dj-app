@@ -149,8 +149,6 @@ public final class StoreKitManager {
 
     @MainActor
     private func handlePurchase(_ transaction: Transaction) async {
-        let productID = transaction.productID
-
         if let expirationDate = transaction.expirationDate {
             if expirationDate > Date() {
                 ProStatusManager.shared.grantPro(
