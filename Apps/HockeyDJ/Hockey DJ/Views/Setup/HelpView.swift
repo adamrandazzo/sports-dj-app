@@ -216,15 +216,16 @@ struct EventsSetupContent: View {
 
             HelpSubheading("Default Events")
             HelpBulletList([
+                "Warm Up - Pre-game warmup music",
+                "Game Start - Opening music",
                 "Goal Home - Celebrate home team goals",
                 "Goal Away - Away team scores",
-                "Stoppage - Play stoppage music",
-                "Penalty Home / Away - Penalty announcements",
                 "Power Play - Power play music",
+                "Penalty Kill - Penalty kill music",
+                "Stoppage - Play stoppage music",
                 "Intermission - Between periods",
-                "Game Start - Opening music",
-                "Victory - Winning celebration",
-                "Custom - For anything else"
+                "Sound Effects - Horn blasts, crowd noise, and more",
+                "Victory - Winning celebration"
             ])
 
             HelpSubheading("Creating a Custom Event")

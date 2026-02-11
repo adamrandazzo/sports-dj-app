@@ -56,7 +56,7 @@ public enum ProFeature: String, CaseIterable, Identifiable {
         case .setlists:
             return "Save and load custom setlists for different games with access to curated playlists."
         case .moreTeams:
-            return "Create up to \(Self.proLimits.maxTeams) teams. Free users are limited to \(Self.freeLimits.maxTeams) team."
+            return "Create up to \(Self.proLimits.maxTeams) teams. Free users are limited to \(Self.freeLimits.maxTeams) \(Self.freeLimits.maxTeams == 1 ? "team" : "teams")."
         case .morePlayers:
             return "Add up to \(Self.proLimits.maxPlayersPerTeam) players per team. Free users are limited to \(Self.freeLimits.maxPlayersPerTeam)."
         case .aiNames:

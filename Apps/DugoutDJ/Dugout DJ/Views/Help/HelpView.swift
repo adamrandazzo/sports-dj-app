@@ -428,17 +428,14 @@ struct EventsSetupContent: View {
 
             HelpSubheading("Default Events")
             HelpBulletList([
+                "Warm Ups - Pre-game warmup music",
+                "National Anthem - Pre-game ceremony",
                 "Home Run - Celebrate the big hit",
                 "Strike Out - Pitcher gets a K",
-                "Double Play - Two outs at once",
-                "Foul Ball - Fun foul ball moments",
-                "Base Hit - Batter gets on base",
-                "Inning Start - Between-inning music",
+                "Inning Start - Music when a new inning begins",
+                "Between Innings - Music during inning breaks",
                 "7th Inning Stretch - Take Me Out to the Ball Game",
-                "Victory - Post-game celebration",
-                "National Anthem - Pre-game ceremony",
-                "Warm Ups - Pre-game warmup music",
-                "Sound Effects - General sound effects"
+                "Victory - Post-game celebration"
             ])
 
             HelpSubheading("Creating a Custom Event")
